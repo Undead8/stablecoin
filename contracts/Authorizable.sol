@@ -11,12 +11,12 @@ contract Authorizable is Ownable {
         _;
     }
 
-    function addAuthorized(address toAdd) onlyOwner public {
+    function addAuthorizedAddress(address toAdd) onlyOwner public {
         require(toAdd != 0);
         authorized[toAdd] = true;
     }
 
-    function removeAuthorized(address toRemove) onlyOwner public {
+    function removeAuthorizedAddress(address toRemove) onlyOwner public {
         require(toRemove != 0);
         require(toRemove != msg.sender);
         authorized[toRemove] = false;

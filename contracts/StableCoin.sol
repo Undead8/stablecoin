@@ -73,7 +73,7 @@ contract StableCoin is Pausable, Authorizable {
         emit Transfer(this, target, mintedAmount);
     }
 
-    function destroy() public payable onlyOwner {
+    function destroyContract() public payable onlyOwner {
         selfdestruct(owner);
     }
 
