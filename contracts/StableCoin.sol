@@ -1,10 +1,11 @@
 pragma solidity ^0.4.24;
 
 import './openzeppelin/Pausable.sol';
+import "./Authorizable.sol";
 
 interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) external; }
 
-contract StableCoin is Pausable {
+contract StableCoin is Pausable, Authorizable {
     string public name;
     string public symbol;
     uint8 public decimals = 2;
@@ -65,7 +66,7 @@ contract StableCoin is Pausable {
         return true;
     }
 
-    function mintToken(address target, uint256 mintedAmount) public onlyOwner whenNotPaused {
+    function mintToken(address target, uint256 mintedAmount) public onlyAuthorized whenNotPaused {
         balanceOf[target] += mintedAmount;
         totalSupply += mintedAmount;
         emit Transfer(0, this, mintedAmount);
