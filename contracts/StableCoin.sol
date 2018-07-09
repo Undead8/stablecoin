@@ -1,11 +1,10 @@
 pragma solidity ^0.4.24;
 
-import './SuperOwnable.sol';
-import './Pausable.sol';
+import './openzeppelin/Pausable.sol';
 
 interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) external; }
 
-contract StableCoin is SuperOwnable, Pausable {
+contract StableCoin is Pausable {
     string public name;
     string public symbol;
     uint8 public decimals = 2;
@@ -73,8 +72,8 @@ contract StableCoin is SuperOwnable, Pausable {
         emit Transfer(this, target, mintedAmount);
     }
 
-    function destroy() public payable onlySuperOwner {
-        selfdestruct(superOwner);
+    function destroy() public payable onlyOwner {
+        selfdestruct(owner);
     }
 
     /**
