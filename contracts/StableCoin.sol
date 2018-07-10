@@ -3,8 +3,6 @@ pragma solidity ^0.4.24;
 import './openzeppelin/Pausable.sol';
 import "./Authorizable.sol";
 
-interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) external; }
-
 contract StableCoin is Pausable, Authorizable {
     string public name;
     string public symbol;
@@ -51,14 +49,6 @@ contract StableCoin is Pausable, Authorizable {
         allowance[msg.sender][_spender] = _value;
         emit Approve(msg.sender, _spender, _value)
         return true;
-    }
-
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public whenNotPaused returns (bool success) {
-        tokenRecipient spender = tokenRecipient(_spender);
-        if (approve(_spender, _value)) {
-            spender.receiveApproval(msg.sender, _value, this, _extraData);
-            return true;
-        }
     }
 
     function redeem(uint256 _value) public whenNotPaused returns (bool success) {
