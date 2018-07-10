@@ -2,8 +2,9 @@ pragma solidity ^0.4.24;
 
 import './openzeppelin/Pausable.sol';
 import "./Authorizable.sol";
+import "./Cooldownable.sol";
 
-contract StableCoin is Pausable, Authorizable {
+contract StableCoin is Pausable, Authorizable, Cooldownable {
     string public name;
     string public symbol;
     uint8 public decimals = 2;
@@ -11,7 +12,7 @@ contract StableCoin is Pausable, Authorizable {
 
     mapping (address => uint256) public balanceOf;
     mapping (address => mapping (address => uint256)) public allowance;
-    mapping (uint256 => bool) public depositMinted; // Maybe should be internal instead of public
+    mapping (uint256 => bool) internal depositMinted; // Maybe should be internal instead of public
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
@@ -26,7 +27,8 @@ contract StableCoin is Pausable, Authorizable {
         require(_to != 0x0, "Cannot transfer to 0x0 address.");
         require(balanceOf[_from] >= _value, "Insufficient balance.");
         require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
-        uint previousBalances = balanceOf[_from] + balanceOf[_to];
+        require(balanceOf[_from] - _value >= valueInCooldown(_from), "You must wait for cooldown expiration before transfering value in cooldown.");
+        uint256 previousBalances = balanceOf[_from] + balanceOf[_to];
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
         emit Transfer(_from, _to, _value);
@@ -59,13 +61,14 @@ contract StableCoin is Pausable, Authorizable {
         return true;
     }
 
-    function mintToken(address target, uint256 mintedAmount, uint _depositNumber) public onlyAuthorized whenNotPaused returns (bool success) {
+    function mintToken(address _to, uint256 _value, uint _depositNumber, uint256 _cooldownInMinutes) public onlyAuthorized whenNotPaused returns (bool success) {
         require(!depositMinted[_depositNumber], "Deposit has already been minted.");
-        balanceOf[target] += mintedAmount;
-        totalSupply += mintedAmount;
+        setCooldown(_to, _value, _cooldownInMinutes);
+        balanceOf[_to] += _value;
+        totalSupply += _value;
         depositMinted[_depositNumber] = true;
-        emit Transfer(0, this, mintedAmount);
-        emit Transfer(this, target, mintedAmount);
+        emit Transfer(0, this, _value);
+        emit Transfer(this, _to, _value);
         return true;
     }
 
