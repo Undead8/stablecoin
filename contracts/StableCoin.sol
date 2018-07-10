@@ -13,6 +13,7 @@ contract StableCoin is Pausable, Authorizable {
 
     mapping (address => uint256) public balanceOf;
     mapping (address => mapping (address => uint256)) public allowance;
+    mapping (uint256 => bool) public depositMinted; // Maybe should be internal instead of public
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value)
@@ -68,11 +69,14 @@ contract StableCoin is Pausable, Authorizable {
         return true;
     }
 
-    function mintToken(address target, uint256 mintedAmount) public onlyAuthorized whenNotPaused {
+    function mintToken(address target, uint256 mintedAmount, uint _depositNumber) public onlyAuthorized whenNotPaused returns (bool success) {
+        require(!depositMinted[_depositNumber], "Deposit has already been minted.");
         balanceOf[target] += mintedAmount;
         totalSupply += mintedAmount;
+        depositMinted[_depositNumber] = true;
         emit Transfer(0, this, mintedAmount);
         emit Transfer(this, target, mintedAmount);
+        return true;
     }
 
     function destroyContract() public payable onlyOwner {
