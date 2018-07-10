@@ -14,7 +14,7 @@ contract StableCoin is Pausable, Authorizable {
     mapping (uint256 => bool) public depositMinted; // Maybe should be internal instead of public
 
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value)
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event Redeem(address indexed from, uint256 value);
 
     constructor(string tokenName, string tokenSymbol) public {
@@ -47,7 +47,7 @@ contract StableCoin is Pausable, Authorizable {
 
     function approve(address _spender, uint256 _value) public whenNotPaused returns (bool success) {
         allowance[msg.sender][_spender] = _value;
-        emit Approve(msg.sender, _spender, _value)
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
