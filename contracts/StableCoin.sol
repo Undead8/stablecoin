@@ -9,6 +9,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     string public symbol;
     uint8 public decimals = 2;
     uint256 public totalSupply;
+    uint256 public minimumRedeemValue;
 
     mapping (address => uint256) public balanceOf;
     mapping (address => mapping (address => uint256)) public allowance;
@@ -16,8 +17,9 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     mapping (address => bytes32) internal redeemDigest; // Maybe should be internal instead of public
 
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
     event Redeem(address indexed from, uint256 value);
+    event MinimumRedeemValue(uint256 _value);
 
     constructor(string tokenName, string tokenSymbol) public {
         name = tokenName;
@@ -59,9 +61,16 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         return true;
     }
 
+    function setMinimumRedeemValue(uint256 _value) public onlyAuthorized whenNotPaused returns (bool success) {
+        minimumRedeemValue = _value;
+        emit MinimumRedeemValue(_value);
+        return true;
+    }
+
     function redeem(uint256 _value, bytes32 _password) public whenNotPaused returns (bool success) {
         require(redeemDigest[msg.sender].length > 0, "Redeem must be approved by an authorized address.");
         require(keccak256(_password) == redeemDigest[msg.sender], "Wrong password.");
+        require(_value >= minimumRedeemValue, "Redeem value must be above minimum.");
         require(balanceOf[msg.sender] >= _value, "Insufficient balance.");
         balanceOf[msg.sender] -= _value;
         totalSupply -= _value;
