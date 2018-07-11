@@ -6,20 +6,25 @@ contract Authorizable is Ownable {
 
     mapping(address => bool) public authorized;
 
+    event Authorize(address indexed _to, bool indexed _authorized);
+
     modifier onlyAuthorized() {
-        require(authorized[msg.sender] || owner == msg.sender);
+        require(authorized[msg.sender] || owner == msg.sender, "Must be authorized.");
         _;
     }
 
-    function addAuthorizedAddress(address toAdd) onlyOwner public {
-        require(toAdd != 0);
-        authorized[toAdd] = true;
+    function addAuthorizedAddress(address _toAdd) onlyOwner public returns (bool success) {
+        require(_toAdd != 0);
+        authorized[_toAdd] = true;
+        emit Authorize(_toAdd, true);
+        return true;
     }
 
-    function removeAuthorizedAddress(address toRemove) onlyOwner public {
-        require(toRemove != 0);
-        require(toRemove != msg.sender);
-        authorized[toRemove] = false;
+    function removeAuthorizedAddress(address _toRemove) onlyOwner public returns (bool success) {
+        require(_toRemove != 0);
+        require(_toRemove != msg.sender);
+        authorized[_toRemove] = false;
+        emit Authorize(_toRemove, false);
+        return true;
     }
-
 }
