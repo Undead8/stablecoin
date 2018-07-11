@@ -27,7 +27,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         require(_to != 0x0, "Cannot transfer to 0x0 address.");
         require(balanceOf[_from] >= _value, "Insufficient balance.");
         require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
-        require(balanceOf[_from] - _value >= valueInCooldown(_from), "You must wait for cooldown expiration before transfering value in cooldown.");
+        require(balanceOf[_from] - _value >= valueInCooldown(_from), "Cooldown must expire before transfering value in cooldown.");
         uint256 previousBalances = balanceOf[_from] + balanceOf[_to];
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
@@ -47,7 +47,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         return true;
     }
 
-    function approve(address _spender, uint256 _value) public whenNotPaused returns (bool success) {
+    function approve(address _spender, uint256 _value) public whenNotPaused returns (bool success) { // Should cooldown stop approve^
         allowance[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         return true;
@@ -61,8 +61,11 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         return true;
     }
 
-    function mintToken(address _to, uint256 _value, uint _depositNumber, uint256 _cooldownInMinutes) public onlyAuthorized whenNotPaused returns (bool success) {
+    function mintToken(address _to, uint256 _value, uint256 _depositNumber, uint256 _cooldownInMinutes) public onlyAuthorized whenNotPaused returns (bool success) {
         require(!depositMinted[_depositNumber], "Deposit has already been minted.");
+        require(_to != 0x0, "Cannot mint to 0x0 address.");
+        require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
+        require(valueInCooldown(_to) == 0, "Cooldown must be expired.");
         setCooldown(_to, _value, _cooldownInMinutes);
         balanceOf[_to] += _value;
         totalSupply += _value;
@@ -72,26 +75,18 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         return true;
     }
 
-    function destroyContract() public payable onlyOwner {
-        selfdestruct(owner);
+    function reverseMintage(address _from, uint256 _value, uint256 _depositNumber) public onlyAuthorized returns (bool success) {
+        require(valueInCooldown(_from) >= _value, "Reverse value exceeds value in cooldown.");
+        depositMinted[_depositNumber] = false;
+        totalSupply -= _value;
+        balanceOf[_from] -= _value;
+        setCooldown(_from, 0, 0);
+        emit Transfer(_from, this, _value);
+        emit Transfer(this, 0, _value);
+        return true;
     }
 
-    /**
-     * Destroy tokens from other account
-     *
-     * Remove `_value` tokens from the system irreversibly on behalf of `_from`.
-     *
-     * @param _from the address of the sender
-     * @param _value the amount of money to burn
-     */
-    /* function burnFrom(address _from, uint256 _value) public returns (bool success) {
-    require(balanceOf[_from] >= _value);                // Check if the targeted balance is enough
-    require(_value <= allowance[_from][msg.sender]);    // Check allowance
-    balanceOf[_from] -= _value;                         // Subtract from the targeted balance
-    allowance[_from][msg.sender] -= _value;             // Subtract from the sender's allowance
-    totalSupply -= _value;                              // Update totalSupply
-    emit Burn(_from, _value);
-    return true;
+    function destroyContract() public payable onlyOwner whenPaused {
+        selfdestruct(owner);
     }
-    */
 }
