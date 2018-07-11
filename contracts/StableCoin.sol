@@ -13,6 +13,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     mapping (address => uint256) public balanceOf;
     mapping (address => mapping (address => uint256)) public allowance;
     mapping (uint256 => bool) internal depositMinted; // Maybe should be internal instead of public
+    mapping (address => bytes32) internal redeemDigest; // Maybe should be internal instead of public
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
@@ -53,7 +54,14 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         return true;
     }
 
-    function redeem(uint256 _value) public whenNotPaused returns (bool success) {
+    function allowRedeem(address _target, bytes32 _digest) public onlyAuthorized whenNotPaused returns (bool success) {
+        redeemDigest[_target] = _digest;
+        return true;
+    }
+
+    function redeem(uint256 _value, bytes32 _password) public whenNotPaused returns (bool success) {
+        require(redeemDigest[msg.sender].length > 0, "Redeem must be approved by an authorized address.");
+        require(keccak256(_password) == redeemDigest[msg.sender], "Wrong password.");
         require(balanceOf[msg.sender] >= _value, "Insufficient balance.");
         balanceOf[msg.sender] -= _value;
         totalSupply -= _value;
