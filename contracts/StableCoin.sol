@@ -84,7 +84,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
             redeemDigest[msg.sender].length > 0,
             "Redeem must be approved by an authorized address."
         );
-        require(keccak256(_password) == redeemDigest[msg.sender], "Wrong password.");
+        require(keccak256(abi.encodePacked(_password)) == redeemDigest[msg.sender], "Wrong password.");
         require(_value >= minimumRedeemValue, "Redeem value must be above minimum.");
         require(balanceOf[msg.sender] >= _value, "Insufficient balance.");
         balanceOf[msg.sender] -= _value;
