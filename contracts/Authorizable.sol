@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
 
+
 contract Authorizable is Ownable {
 
     mapping(address => bool) public authorized;
@@ -13,14 +14,14 @@ contract Authorizable is Ownable {
         _;
     }
 
-    function addAuthorizedAddress(address _toAdd) onlyOwner public returns (bool success) {
+    function addAuthorizedAddress(address _toAdd) public onlyOwner returns (bool success) {
         require(_toAdd != 0);
         authorized[_toAdd] = true;
         emit Authorize(_toAdd, true);
         return true;
     }
 
-    function removeAuthorizedAddress(address _toRemove) onlyOwner public returns (bool success) {
+    function removeAuthorizedAddress(address _toRemove) public onlyOwner returns (bool success) {
         require(_toRemove != 0);
         require(_toRemove != msg.sender);
         authorized[_toRemove] = false;
