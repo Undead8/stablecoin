@@ -143,10 +143,8 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         require(balanceOf[_from] >= _value, "Insufficient balance.");
         require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
         require(balanceOf[_from] - _value >= valueInCooldown(_from), "Cooldown must be expired.");
-        uint256 previousBalances = balanceOf[_from] + balanceOf[_to];
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
         emit Transfer(_from, _to, _value);
-        assert(balanceOf[_from] + balanceOf[_to] == previousBalances);
     }
 }
