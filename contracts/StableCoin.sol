@@ -27,6 +27,49 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         symbol = tokenSymbol;
     }
 
+    function mintToken(
+        address _to,
+        uint256 _value,
+        uint256 _depositNumber,
+        uint256 _cooldownInMinutes
+    )
+        public
+        onlyAuthorized
+        whenNotPaused
+        returns (bool success)
+    {
+        require(!depositMinted[_depositNumber], "Deposit has already been minted.");
+        require(_to != 0x0, "Cannot mint to 0x0 address.");
+        require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
+        require(valueInCooldown(_to) == 0, "Cooldown must be expired.");
+        setCooldown(_to, _value, _cooldownInMinutes);
+        balanceOf[_to] += _value;
+        totalSupply += _value;
+        depositMinted[_depositNumber] = true;
+        emit Transfer(0, this, _value);
+        emit Transfer(this, _to, _value);
+        return true;
+    }
+
+    function reverseMintage(
+        address _from,
+        uint256 _value,
+        uint256 _depositNumber
+    )
+        public
+        onlyAuthorized
+        returns (bool success)
+    {
+        require(valueInCooldown(_from) >= _value, "Reverse value exceeds value in cooldown.");
+        depositMinted[_depositNumber] = false;
+        totalSupply -= _value;
+        balanceOf[_from] -= _value;
+        setCooldown(_from, 0, 0);
+        emit Transfer(_from, this, _value);
+        emit Transfer(this, 0, _value);
+        return true;
+    }
+
     function transfer(address _to, uint256 _value) public whenNotPaused returns (bool success) {
         _transfer(msg.sender, _to, _value);
         return true;
@@ -90,49 +133,6 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         balanceOf[msg.sender] -= _value;
         totalSupply -= _value;
         emit Redeem(msg.sender, _value);
-        return true;
-    }
-
-    function mintToken(
-        address _to,
-        uint256 _value,
-        uint256 _depositNumber,
-        uint256 _cooldownInMinutes
-    )
-        public
-        onlyAuthorized
-        whenNotPaused
-        returns (bool success)
-    {
-        require(!depositMinted[_depositNumber], "Deposit has already been minted.");
-        require(_to != 0x0, "Cannot mint to 0x0 address.");
-        require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
-        require(valueInCooldown(_to) == 0, "Cooldown must be expired.");
-        setCooldown(_to, _value, _cooldownInMinutes);
-        balanceOf[_to] += _value;
-        totalSupply += _value;
-        depositMinted[_depositNumber] = true;
-        emit Transfer(0, this, _value);
-        emit Transfer(this, _to, _value);
-        return true;
-    }
-
-    function reverseMintage(
-        address _from,
-        uint256 _value,
-        uint256 _depositNumber
-    )
-        public
-        onlyAuthorized
-        returns (bool success)
-    {
-        require(valueInCooldown(_from) >= _value, "Reverse value exceeds value in cooldown.");
-        depositMinted[_depositNumber] = false;
-        totalSupply -= _value;
-        balanceOf[_from] -= _value;
-        setCooldown(_from, 0, 0);
-        emit Transfer(_from, this, _value);
-        emit Transfer(this, 0, _value);
         return true;
     }
 
