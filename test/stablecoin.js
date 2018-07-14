@@ -16,7 +16,7 @@ const timeTravel = function (time) {
 
 contract("StableCoin", function(accounts) {
 
-  describe("PublicVariables", function(accounts) {
+  contract("PublicVariables", function(accounts) {
 
     it("should have the right name", async function () {
       let stable = await StableCoin.deployed();
@@ -49,7 +49,7 @@ contract("StableCoin", function(accounts) {
     });
   });
 
-  describe("Mappings", function(accounts) {
+  contract("Mappings", function(accounts) {
 
   });
 });
