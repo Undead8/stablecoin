@@ -11,16 +11,21 @@ contract Cooldownable {
     mapping (address => TokenInCooldown) internal cooldownOf;
 
     function valueInCooldown(address _target) public view returns (uint256 value) {
-        if (now < cooldownOf[_target].cooldownExpiration) {
-            return cooldownOf[_target].value;
+        uint256 expiration = cooldownOf[_target].cooldownExpiration;
+        uint256 cooldownValue = cooldownOf[_target].value;
+
+        if (now < expiration) {
+            return cooldownValue;
         } else {
             return 0;
         }
     }
 
     function secondsLeftInCooldown(address _target) public view returns (uint256 time) {
-        if (now < cooldownOf[_target].cooldownExpiration) {
-            return cooldownOf[_target].cooldownExpiration - now;
+        uint256 expiration = cooldownOf[_target].cooldownExpiration;
+
+        if (now < expiration) {
+            return expiration - now;
         } else {
             return 0;
         }

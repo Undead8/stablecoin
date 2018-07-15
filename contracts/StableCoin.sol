@@ -53,20 +53,20 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
 
     function reverseMintage(
         address _from,
-        uint256 _value,
         uint256 _depositNumber
     )
         public
         onlyAuthorized
         returns (bool success)
     {
-        require(valueInCooldown(_from) >= _value, "Reverse value exceeds value in cooldown.");
+        uint256 value = valueInCooldown(_from);
+        require(value > 0, "No value in cooldown");
         depositMinted[_depositNumber] = false;
-        totalSupply -= _value;
-        balanceOf[_from] -= _value;
+        totalSupply -= value;
+        balanceOf[_from] -= value;
         setCooldown(_from, 0, 0);
-        emit Transfer(_from, this, _value);
-        emit Transfer(this, 0, _value);
+        emit Transfer(_from, this, value);
+        emit Transfer(this, 0, value);
         return true;
     }
 
