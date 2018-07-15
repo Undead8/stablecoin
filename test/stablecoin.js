@@ -121,10 +121,30 @@ contract("StableCoin", function(accounts) {
       throw new Error("Did not throw")
     });
 
-    it("should throw if contract is paused", async function () {
+    it("should throw if account is in cooldown", async function () {
       let stable = await StableCoin.deployed();
       let sender = await accounts[0];
       let receiver = await accounts[5];
+      let value = await Math.floor(Math.random() * 100000000);
+      let firstDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let secondDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 6000) + 1000;
+
+      await stable.mintToken(receiver, value, firstDepositNumber, cooldown, {from: sender});
+      await timeTravel(60);
+
+      try {
+        await stable.mintToken(receiver, value, secondDepositNumber, 0, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    it("should throw if contract is paused", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[6];
       let value = await Math.floor(Math.random() * 100000000);
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
@@ -138,8 +158,6 @@ contract("StableCoin", function(accounts) {
       }
       throw new Error("Did not throw")
     });
-
-    // Test cooldown
   });
 
   contract("#reverseMintage", function(accounts) {
@@ -153,13 +171,13 @@ contract("StableCoin", function(accounts) {
       let owner = await accounts[0];
       let sender = await accounts[1];
       let receiver = await accounts[2];
-      let originalMint = await 100000000000000;
-      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let originalMint = await 100000000000;
+      let value = await Math.floor(Math.random() * 100000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await 0;
 
       await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
-
+      await timeTravel(1);
       await stable.transfer(receiver, value, {from: sender});
 
       let receiverBalance = await stable.balanceOf.call(receiver);
@@ -180,6 +198,7 @@ contract("StableCoin", function(accounts) {
       let cooldown = await 0;
 
       await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
+      await timeTravel(1);
 
       try {
         await stable.transfer(receiver, value, {from: sender});
@@ -189,16 +208,40 @@ contract("StableCoin", function(accounts) {
       throw new Error("Did not throw")
     });
 
+    it("should throw if value is in cooldown", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
+      let sender = await accounts[5];
+      let receiver = await accounts[6];
+      let originalMint = await 1000000000;
+      let value = await Math.floor(Math.random() * 100000000) + 100001;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 6000) + 1000;
+
+      await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
+      await timeTravel(60);
+
+      try {
+        await stable.transfer(receiver, value, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    // SHOULD TRANFER DESPITE COOLDOWN IF THERE IS UNLOCKED VALUE IN ACCOUNT
+
     it("should throw if contract is paused", async function () {
       let stable = await StableCoin.deployed();
       let owner = await accounts[0];
-      let sender = await accounts[1];
-      let receiver = await accounts[2];
+      let sender = await accounts[7];
+      let receiver = await accounts[8];
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await 0;
 
       await stable.pauseContract({from: owner});
+      await timeTravel(1);
 
       try {
         await stable.transfer(receiver, value, {from: sender});
@@ -207,9 +250,6 @@ contract("StableCoin", function(accounts) {
       }
       throw new Error("Did not throw")
     });
-
-    // cooldown
-
   });
 
 
