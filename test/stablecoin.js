@@ -52,6 +52,96 @@ contract("StableCoin", function(accounts) {
   contract("Mappings", function(accounts) {
 
   });
+
+  contract("#mintToken", function(accounts) {
+
+    it("should mint the tokens by owner", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[1];
+      let value = await Math.floor(Math.random() * 100000000);
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+
+      let mintedTokens = await stable.balanceOf.call(receiver);
+
+      assert.equal(mintedTokens, value, "Tokens not minted correctly")
+    });
+
+    it("should mint the tokens by authorized", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0]
+      let sender = await accounts[1];
+      let receiver = await accounts[2];
+      let value = await Math.floor(Math.random() * 100000000);
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      await stable.addAuthorizedAddress(sender, {from: owner});
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+
+      let mintedTokens = await stable.balanceOf.call(receiver);
+
+      assert.equal(mintedTokens, value, "Tokens not minted correctly")
+    });
+
+    it("should throw if minted by address not authorized", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[2];
+      let receiver = await accounts[3];
+      let value = await Math.floor(Math.random() * 100000000);
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      try {
+        await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    it("should throw if deposit was already minted", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[4];
+      let value = await Math.floor(Math.random() * 100000000);
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await 0;
+
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+
+      try {
+        await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    it("should throw if contract is paused", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[5];
+      let value = await Math.floor(Math.random() * 100000000);
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      await stable.pauseContract({from: sender});
+
+      try {
+        await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    // Test cooldown
+
+  });
 });
 
 /*
