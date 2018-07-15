@@ -16,7 +16,7 @@ const timeTravel = function (time) {
 
 contract("Cooldownable", function(accounts) {
 
-  it("should return the cooldown value of address", async function () {
+  it("should return the cooldown value when in cooldown", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
     let receiver = await accounts[1];
@@ -31,7 +31,7 @@ contract("Cooldownable", function(accounts) {
     assert.equal(valueInCooldown, value, "The cooldown value of address is returned incorrectly")
   });
 
-  it("should return the seconds left in cooldown of address", async function () {
+  it("should return the seconds left in coolddown when in cooldown", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
     let receiver = await accounts[2];
@@ -45,6 +45,52 @@ contract("Cooldownable", function(accounts) {
 
     assert.isAbove(seconds, 0, "Seconds left are not above 0") ||
     assert.isAtMost(seconds, cooldown * 60, "Seconds left are higher than cooldown")
+  });
+
+  it("should return value at zero when cooldown is expired", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let receiver = await accounts[3];
+    let value = await Math.floor(Math.random() * 100000000) + 1;
+    let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+    let cooldown = await Math.floor(Math.random() * 6000) + 60;
+
+    await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+    await timeTravel(cooldown * 60 + 1);
+    let valueInCooldown = await stable.valueInCooldown.call(receiver);
+
+    assert.equal(valueInCooldown, 0, "The cooldown value of address is not 0")
+  });
+
+  it("should return seconds at zero when cooldown is expired", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let receiver = await accounts[4];
+    let value = await Math.floor(Math.random() * 100000000) + 1;
+    let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+    let cooldown = await Math.floor(Math.random() * 6000) + 60;
+
+    await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+    await timeTravel(cooldown * 60 + 1);
+    let seconds = await stable.secondsLeftInCooldown.call(receiver).then(result => result.toNumber());
+
+    assert.equal(seconds, 0, "The cooldown seconds left of address is not 0")
+  });
+
+  it("should throw if cooldown is set to more than 7200 minutes", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let receiver = await accounts[5];
+    let value = await Math.floor(Math.random() * 100000000) + 1;
+    let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+    let cooldown = await Math.floor(Math.random() * 10000) + 7201;
+
+    try {
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+    } catch (e) {
+      return true;
+    }
+    throw new Error("It did not throw")
   });
 
 });

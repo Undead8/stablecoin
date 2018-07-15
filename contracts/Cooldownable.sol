@@ -16,7 +16,6 @@ contract Cooldownable {
         } else {
             return 0;
         }
-
     }
 
     function secondsLeftInCooldown(address _target) public view returns (uint256 time) {
