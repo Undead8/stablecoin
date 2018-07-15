@@ -93,4 +93,29 @@ contract("Cooldownable", function(accounts) {
     throw new Error("It did not throw")
   });
 
+  it("should have a cooldown value of zero when not set", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let receiver = await accounts[6];
+    let value = await Math.floor(Math.random() * 100000000) + 1;
+    let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+    let cooldown = await Math.floor(Math.random() * 10000) + 7201;
+
+    let valueInCooldown = await stable.valueInCooldown.call(receiver);
+
+    assert.equal(valueInCooldown, 0, "The cooldown value of address is not 0")
+  });
+
+  it("should return zero seconds when not set", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let receiver = await accounts[6];
+    let value = await Math.floor(Math.random() * 100000000) + 1;
+    let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+    let cooldown = await Math.floor(Math.random() * 10000) + 7201;
+
+    let seconds = await stable.secondsLeftInCooldown.call(receiver).then(result => result.toNumber());
+
+    assert.equal(seconds, 0, "The cooldown seconds left of address is not 0")
+  });
 });
