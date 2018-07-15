@@ -8,7 +8,7 @@ import "./Cooldownable.sol";
 contract StableCoin is Pausable, Authorizable, Cooldownable {
     string public name;
     string public symbol;
-    uint8 public decimals = 2;
+    uint8 public decimals = 2; // make constant^
     uint256 public totalSupply;
     uint256 public minimumRedeemValue;
 

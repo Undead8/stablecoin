@@ -8,20 +8,27 @@ contract Cooldownable {
         uint256 value;
     }
 
-    mapping (address => TokenInCooldown) public cooldownOf; // Should we show valueInCooldown instead?
+    mapping (address => TokenInCooldown) internal cooldownOf;
 
-    function setCooldown(address _target, uint256 _value, uint256 _minutes) internal {
-        require(_minutes <= 7200, "Max cooldown is 7200 minutes");
-        cooldownOf[_target] = TokenInCooldown(_value, now + _minutes * 1 minutes);
-    }
-
-    function valueInCooldown(address _target) internal view returns (uint256 value) {
-        TokenInCooldown memory _tokenInCooldown = cooldownOf[_target];
-
-        if (now <= _tokenInCooldown.cooldownExpiration) {
-            return _tokenInCooldown.value;
+    function valueInCooldown(address _target) public view returns (uint256 value) {
+        if (now <= cooldownOf[_target].cooldownExpiration) {
+            return cooldownOf[_target].value;
         } else {
             return 0;
         }
+
+    }
+
+    function timeLeftInCooldown(address _target) public view returns (uint256 time) {
+        if (now <= cooldownOf[_target].cooldownExpiration) {
+            return cooldownOf[_target].cooldownExpiration - now;
+        } else {
+            return 0;
+        }
+    }
+
+    function setCooldown(address _target, uint256 _value, uint256 _minutes) internal {
+        require(_minutes <= 7200, "Max cooldown is 7200 minutes");
+        cooldownOf[_target] = TokenInCooldown(now + _minutes * 1 minutes, _value);
     }
 }
