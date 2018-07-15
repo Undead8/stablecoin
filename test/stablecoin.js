@@ -140,8 +140,79 @@ contract("StableCoin", function(accounts) {
     });
 
     // Test cooldown
+  });
+
+  contract("#reverseMintage", function(accounts) {
 
   });
+
+  contract("#transfer", function(accounts) {
+
+    it("should transfer the tokens", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
+      let sender = await accounts[1];
+      let receiver = await accounts[2];
+      let originalMint = await 100000000000000;
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await 0;
+
+      await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
+
+      await stable.transfer(receiver, value, {from: sender});
+
+      let receiverBalance = await stable.balanceOf.call(receiver);
+      let senderBalance = await stable.balanceOf.call(sender);
+
+      assert.equal(senderBalance, originalMint - value, "Sender balance incorrect") ||
+      assert.equal(receiverBalance, value, "Receiver balance incorrect")
+    });
+
+    it("should throw if balance is insufficient", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
+      let sender = await accounts[3];
+      let receiver = await accounts[4];
+      let originalMint = await 100000;
+      let value = await Math.floor(Math.random() * 100000000) + 100001;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await 0;
+
+      await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
+
+      try {
+        await stable.transfer(receiver, value, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    it("should throw if contract is paused", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
+      let sender = await accounts[1];
+      let receiver = await accounts[2];
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await 0;
+
+      await stable.pauseContract({from: owner});
+
+      try {
+        await stable.transfer(receiver, value, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    // cooldown
+
+  });
+
+
 });
 
 /*
