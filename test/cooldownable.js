@@ -20,17 +20,31 @@ contract("Cooldownable", function(accounts) {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
     let receiver = await accounts[1];
-    let value = await 100000;
-    let depositNumber = await 1234567890;
-    let cooldown = await 60;
+    let value = await Math.floor(Math.random() * 100000000) + 1;
+    let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+    let cooldown = await Math.floor(Math.random() * 6000) + 60;
 
     await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
-    // await timeTravel(50)
 
     let valueInCooldown = await stable.valueInCooldown.call(receiver);
 
-    assert.equal(valueInCooldown - 1, 0, "The cooldown value of address is returned correctly")
+    assert.equal(valueInCooldown, value, "The cooldown value of address is returned incorrectly")
   });
-});
 
-// THIS TEST DOES NOT WORK
+  it("should return the seconds left in cooldown of address", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let receiver = await accounts[2];
+    let value = await Math.floor(Math.random() * 100000000) + 1;
+    let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+    let cooldown = await Math.floor(Math.random() * 6000) + 60;
+
+    await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+
+    let seconds = await stable.secondsLeftInCooldown.call(receiver).then(result => result.toNumber());
+
+    assert.isAbove(seconds, 0, "Seconds left are not above 0") ||
+    assert.isAtMost(seconds, cooldown * 60, "Seconds left are higher than cooldown")
+  });
+
+});

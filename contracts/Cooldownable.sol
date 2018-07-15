@@ -19,8 +19,8 @@ contract Cooldownable {
 
     }
 
-    function timeLeftInCooldown(address _target) public view returns (uint256 time) {
-        if (now <= cooldownOf[_target].cooldownExpiration) {
+    function secondsLeftInCooldown(address _target) public view returns (uint256 time) {
+        if (now < cooldownOf[_target].cooldownExpiration) {
             return cooldownOf[_target].cooldownExpiration - now;
         } else {
             return 0;
