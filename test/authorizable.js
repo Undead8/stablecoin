@@ -15,7 +15,7 @@ contract("Authorizable", function(accounts) {
 
     let authorizedStatusAfter = await stable.authorized.call(receiver)
 
-    assert.isTrue(authorizedStatusBefore, "The address was not authorized") &&
+    assert.isTrue(authorizedStatusBefore, "The address was not authorized") ||
     assert.isFalse(authorizedStatusAfter, "The address was not removed")
   });
 
