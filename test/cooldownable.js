@@ -26,7 +26,7 @@ contract("Cooldownable", function(accounts) {
 
     await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
 
-    let valueInCooldown = await stable.valueInCooldown.call(receiver);
+    let valueInCooldown = await stable.valueInCooldown.call(receiver).then(result => result.toNumber());
 
     assert.equal(valueInCooldown, value, "The cooldown value of address is returned incorrectly")
   });
@@ -57,7 +57,7 @@ contract("Cooldownable", function(accounts) {
 
     await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
     await timeTravel(cooldown * 60 + 1);
-    let valueInCooldown = await stable.valueInCooldown.call(receiver);
+    let valueInCooldown = await stable.valueInCooldown.call(receiver).then(result => result.toNumber());
 
     assert.equal(valueInCooldown, 0, "The cooldown value of address is not 0")
   });
@@ -101,7 +101,7 @@ contract("Cooldownable", function(accounts) {
     let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
     let cooldown = await Math.floor(Math.random() * 10000) + 7201;
 
-    let valueInCooldown = await stable.valueInCooldown.call(receiver);
+    let valueInCooldown = await stable.valueInCooldown.call(receiver).then(result => result.toNumber());
 
     assert.equal(valueInCooldown, 0, "The cooldown value of address is not 0")
   });
