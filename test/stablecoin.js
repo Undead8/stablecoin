@@ -49,17 +49,13 @@ contract("StableCoin", function(accounts) {
     });
   });
 
-  contract("Mappings", function(accounts) {
-
-  });
-
   contract("#mintToken", function(accounts) {
 
     it("should mint the tokens by owner", async function () {
       let stable = await StableCoin.deployed();
       let sender = await accounts[0];
       let receiver = await accounts[1];
-      let value = await Math.floor(Math.random() * 100000000);
+      let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
 
@@ -75,7 +71,7 @@ contract("StableCoin", function(accounts) {
       let owner = await accounts[0]
       let sender = await accounts[1];
       let receiver = await accounts[2];
-      let value = await Math.floor(Math.random() * 100000000);
+      let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
 
@@ -91,7 +87,7 @@ contract("StableCoin", function(accounts) {
       let stable = await StableCoin.deployed();
       let sender = await accounts[2];
       let receiver = await accounts[3];
-      let value = await Math.floor(Math.random() * 100000000);
+      let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
 
@@ -107,7 +103,7 @@ contract("StableCoin", function(accounts) {
       let stable = await StableCoin.deployed();
       let sender = await accounts[0];
       let receiver = await accounts[4];
-      let value = await Math.floor(Math.random() * 100000000);
+      let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await 0;
 
@@ -125,7 +121,7 @@ contract("StableCoin", function(accounts) {
       let stable = await StableCoin.deployed();
       let sender = await accounts[0];
       let receiver = await accounts[5];
-      let value = await Math.floor(Math.random() * 100000000);
+      let value = await Math.floor(Math.random() * 100000000) + 1;
       let firstDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let secondDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 6000) + 1000;
@@ -145,7 +141,7 @@ contract("StableCoin", function(accounts) {
       let stable = await StableCoin.deployed();
       let sender = await accounts[0];
       let receiver = await accounts[6];
-      let value = await Math.floor(Math.random() * 100000000);
+      let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
 
@@ -162,6 +158,128 @@ contract("StableCoin", function(accounts) {
 
   contract("#reverseMintage", function(accounts) {
 
+    it("should reverse mintage by owner", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[1];
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 60;
+
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      let receiverBalanceBefore = await stable.balanceOf.call(receiver);
+      let totalSupplyBefore = await stable.totalSupply.call();
+      let valueInCooldownBefore = await stable.valueInCooldown.call(receiver);
+      let depositStatusBefore = await stable.depositMinted.call(depositNumber);
+
+      timeTravel(Math.floor(Math.random() * 5200));
+      await stable.reverseMintage(receiver, depositNumber, {from: sender});
+      let receiverBalanceAfter = await stable.balanceOf.call(receiver);
+      let totalSupplyAfter = await stable.totalSupply.call();
+      let valueInCooldownAfter = await stable.valueInCooldown.call(receiver);
+      let depositStatusAfter = await stable.depositMinted.call(depositNumber);
+
+      assert.equal(receiverBalanceBefore, value, "Tokens not minted correctly") ||
+      assert.equal(receiverBalanceAfter, 0, "Token not reversed correctly") ||
+      assert.equal(totalSupplyBefore, value, "Tokens not assigned to total supply") ||
+      assert.equal(totalSupplyAfter, 0, "Tokens not removed from total supply") ||
+      assert.equal(valueInCooldownBefore, value, "Value in cooldown before incorrect") ||
+      assert.equal(valueInCooldownAfter, 0, "Value in cooldown after incorrect") ||
+      assert.isTrue(depositStatusBefore, "Deposit status not true") ||
+      assert.isFalse(depositStatusAfter, "Deposit status not false")
+    });
+
+/*
+    it("should mint the tokens by authorized", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0]
+      let sender = await accounts[1];
+      let receiver = await accounts[2];
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 60;
+
+      await stable.addAuthorizedAddress(sender, {from: owner});
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+
+      let mintedTokens = await stable.balanceOf.call(receiver);
+
+      assert.equal(mintedTokens, value, "Tokens not minted correctly")
+    });
+
+    it("should throw if minted by address not authorized", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[2];
+      let receiver = await accounts[3];
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 60;
+
+      try {
+        await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    it("should throw if deposit was already minted", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[4];
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await 0;
+
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+
+      try {
+        await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    it("should throw if account is in cooldown", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[5];
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let firstDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let secondDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 6000) + 1000;
+
+      await stable.mintToken(receiver, value, firstDepositNumber, cooldown, {from: sender});
+      await timeTravel(60);
+
+      try {
+        await stable.mintToken(receiver, value, secondDepositNumber, 0, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
+    it("should throw if contract is paused", async function () {
+      let stable = await StableCoin.deployed();
+      let sender = await accounts[0];
+      let receiver = await accounts[6];
+      let value = await Math.floor(Math.random() * 100000000) + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      await stable.pauseContract({from: sender});
+
+      try {
+        await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+*/
+
   });
 
   contract("#transfer", function(accounts) {
@@ -177,7 +295,6 @@ contract("StableCoin", function(accounts) {
       let cooldown = await 0;
 
       await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
-      await timeTravel(1);
       await stable.transfer(receiver, value, {from: sender});
 
       let receiverBalance = await stable.balanceOf.call(receiver);
@@ -198,7 +315,6 @@ contract("StableCoin", function(accounts) {
       let cooldown = await 0;
 
       await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
-      await timeTravel(1);
 
       try {
         await stable.transfer(receiver, value, {from: sender});
@@ -229,19 +345,41 @@ contract("StableCoin", function(accounts) {
       throw new Error("Did not throw")
     });
 
-    // SHOULD TRANFER DESPITE COOLDOWN IF THERE IS UNLOCKED VALUE IN ACCOUNT
-
-    it("should throw if contract is paused", async function () {
+    it("should transfer despite cooldown if value is sufficient", async function () {
       let stable = await StableCoin.deployed();
       let owner = await accounts[0];
       let sender = await accounts[7];
       let receiver = await accounts[8];
+      let firstMint = await 100000;
+      let secondMint = await 10000;
+      let value = await Math.floor(Math.random() * 99999) + 1;
+      let firstDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let secondDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 6000) + 1000;
+
+      await stable.mintToken(sender, firstMint, firstDepositNumber, 0, {from: owner});
+      await stable.mintToken(sender, secondMint, secondDepositNumber, cooldown, {from: owner});
+      await stable.transfer(receiver, value, {from: sender});
+
+      let receiverBalance = await stable.balanceOf.call(receiver);
+      let senderBalance = await stable.balanceOf.call(sender);
+      let valueInCooldown = await stable.valueInCooldown.call(sender).then(result => result.toNumber());
+
+      assert.equal(senderBalance, firstMint + secondMint - value, "Sender balance incorrect") ||
+      assert.equal(receiverBalance, value, "Receiver balance incorrect") ||
+      assert.isAbove(valueInCooldown, 0, "There was no value in cooldown")
+    });
+
+    it("should throw if contract is paused", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
+      let sender = await accounts[9];
+      let receiver = await accounts[0];
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await 0;
 
       await stable.pauseContract({from: owner});
-      await timeTravel(1);
 
       try {
         await stable.transfer(receiver, value, {from: sender});
@@ -254,84 +392,3 @@ contract("StableCoin", function(accounts) {
 
 
 });
-
-/*
-
-
-contract('MetaCoin', function(accounts) {
-
-  it("should put 10000 MetaCoin in the first account", async function () {
-    let meta = await MetaCoin.deployed();
-    let balance = await meta.getBalance.call(accounts[0]);
-    assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account")
-  });
-
-  it("should fail because function does not exist on contract", async function () {
-    let meta = await MetaCoin.deployed();
-    try {
-      await meta.someNonExistantFn();
-    } catch (e) {
-      return true;
-    }
-    throw new Error("I should never see this!")
-  })
-
-  it("should fail specialFn because not enough time passed", async function () {
-    let meta = await MetaCoin.new();
-    try {
-      await timeTravel(10) // Just here so you can play around with time
-      await mineBlock() //workaround for https://github.com/ethereumjs/testrpc/issues/336
-      await meta.specialFn.call();
-    } catch (e) {
-      return true;
-    }
-    throw new Error("Calling specialFn should have failed but somehow succeeded")
-  })
-
-  it("should successfully call specialFn because enough time passed", async function () {
-    let meta = await MetaCoin.new();
-    await timeTravel(86400 * 3) //3 days later
-    await mineBlock() // workaround for https://github.com/ethereumjs/testrpc/issues/336
-    let status = await meta.specialFn.call();
-    assert.equal(status, true, "specialFn should be callable after 1 day")
-  })
-
-  it("should call a function that depends on a linked library", async function () {
-    let meta = await MetaCoin.deployed();
-    let outCoinBalance = await meta.getBalance.call(accounts[0]);
-    let outCoinBalanceEth = await meta.getBalanceInEth.call(accounts[0]);
-
-    let metaCoinBalance = outCoinBalance.toNumber();
-    let metaCoinEthBalance = outCoinBalanceEth.toNumber();
-
-    assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpected function, linkage may be broken");
-  });
-
-  it("should send coin correctly", async function () {
-    // Get initial balances of first and second account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
-
-    var amount = 10;
-
-    let meta = await MetaCoin.deployed();
-    let balance1 = await meta.getBalance.call(account_one);
-    let balance2 = await meta.getBalance.call(account_two);
-
-    let account_one_starting_balance = balance1.toNumber();
-    let account_two_starting_balance = balance2.toNumber();
-
-    await meta.sendCoin(account_two, amount, {from: account_one});
-
-    let balance3 = await meta.getBalance.call(account_one);
-    let balance4 = await meta.getBalance.call(account_two);
-
-    let account_one_ending_balance = balance3.toNumber();
-    let account_two_ending_balance = balance4.toNumber();
-
-    assert.equal(account_one_ending_balance, account_one_starting_balance - 10, "Amount wasn't correctly taken from the sender");
-    assert.equal(account_two_ending_balance, account_two_starting_balance + 10, "Amount wasn't correctly sent to the receiver");
-  });
-});
-
-*/
