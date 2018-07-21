@@ -19,6 +19,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    event RedeemAllowed(address indexed target, bytes32 digest);
     event Redeem(address indexed from, uint256 value);
     event MinimumRedeemValue(uint256 _value);
 
@@ -106,6 +107,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         returns (bool success)
     {
         redeemDigest[_target] = _digest;
+        emit RedeemAllowed(_target, _digest);
         return true;
     }
 
