@@ -324,6 +324,26 @@ contract("StableCoin", function(accounts) {
       throw new Error("Did not throw")
     });
 
+    it("should throw if sent to stablecoin contract", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
+      let sender = await accounts[4];
+      let receiver = await stable.address;
+      let originalMint = await 1000000000;
+      let value = await Math.floor(Math.random() * 100000000) + 100001;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await 0;
+
+      await stable.mintToken(sender, originalMint, depositNumber, cooldown, {from: owner});
+
+      try {
+        await stable.transfer(receiver, value, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    });
+
     it("should throw if value is in cooldown", async function () {
       let stable = await StableCoin.deployed();
       let owner = await accounts[0];

@@ -142,6 +142,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
 
     function _transfer(address _from, address _to, uint _value) internal {
         require(_to != 0x0, "Cannot transfer to 0x0 address.");
+        require(_to != address(this), "Cannot transfer to issuer contract.");
         require(balanceOf[_from] >= _value, "Insufficient balance.");
         require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
         require(balanceOf[_from] - _value >= valueInCooldown(_from), "Cooldown must be expired.");
