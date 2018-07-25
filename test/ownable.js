@@ -9,6 +9,36 @@ contract("Ownable", function(accounts) {
     assert.equal(owner, sender, "Owner is not creator")
   });
 
+  it("should set approvable value by owner", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let firstApprovalValue = await Math.floor(Math.random() * 100000000) + 1;
+    let secondApprovalValue = await Math.floor(Math.random() * 100000000) + 1;
+
+    await stable.setOwnerApprovalValue(firstApprovalValue, {from: sender});
+    let firstApprovalResult = await stable.ownerApprovalValue();
+
+    await stable.setOwnerApprovalValue(secondApprovalValue, {from: sender});
+    let secondApprovalResult = await stable.ownerApprovalValue();
+
+    assert.equal(firstApprovalResult, firstApprovalValue, "Not the right value") ||
+    assert.equal(secondApprovalResult, secondApprovalValue, "Not the right value")
+  });
+
+  it("should throw if transfer approval value is not sent by owner", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[5];
+    let receiver = await accounts[1];
+    let approvalValue = await Math.floor(Math.random() * 100000000) + 1;
+
+    try {
+      await stable.setOwnerApprovalValue(approvalValue, {from: sender});
+    } catch (e) {
+      return true;
+    }
+    throw new Error("ApprovalValue changed")
+  });
+
   it("should transfer ownership", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
@@ -23,8 +53,7 @@ contract("Ownable", function(accounts) {
 
   it("should throw if transfer ownership is not sent by owner", async function () {
     let stable = await StableCoin.deployed();
-    let previousOwner = await stable.owner();
-    let sender = await accounts[5];
+    let sender = await accounts[6];
     let receiver = await accounts[1];
 
     try {

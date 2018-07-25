@@ -55,10 +55,12 @@ contract("StableCoin", function(accounts) {
       let stable = await StableCoin.deployed();
       let sender = await accounts[0];
       let receiver = await accounts[1];
+      let approvalValue = await 10000000000;
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
 
+      await stable.setOwnerApprovalValue(approvalValue, {from: sender});
       await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
 
       let mintedTokens = await stable.balanceOf.call(receiver);
@@ -71,10 +73,12 @@ contract("StableCoin", function(accounts) {
       let owner = await accounts[0]
       let sender = await accounts[1];
       let receiver = await accounts[2];
+      let approvalValue = await 10000000000;
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
 
+      await stable.setOwnerApprovalValue(approvalValue, {from: owner});
       await stable.addAuthorizedAddress(sender, {from: owner});
       await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
 
@@ -85,11 +89,15 @@ contract("StableCoin", function(accounts) {
 
     it("should throw if minted by address not authorized", async function () {
       let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
       let sender = await accounts[2];
       let receiver = await accounts[3];
+      let approvalValue = await 10000000000;
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      await stable.setOwnerApprovalValue(approvalValue, {from: owner});
 
       try {
         await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
@@ -99,14 +107,55 @@ contract("StableCoin", function(accounts) {
       throw new Error("Did not throw")
     });
 
+    it("should mint the tokens above value by owner", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0]
+      let receiver = await accounts[4];
+      let approvalValue = await Math.floor(Math.random() * 100000000) + 1; 
+      let value = await Math.floor(Math.random() * 1000000000) + approvalValue + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      await stable.setOwnerApprovalValue(approvalValue, {from: owner});
+      await stable.mintToken(receiver, value, depositNumber, cooldown, {from: owner});
+
+      let mintedTokens = await stable.balanceOf.call(receiver);
+
+      assert.equal(mintedTokens, value, "Tokens not minted correctly")
+    });
+
+    it("should throw if minted value is above value by owner and not sent by owner", async function () {
+      let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
+      let sender = await accounts[5];
+      let receiver = await accounts[6];
+      let approvalValue = await Math.floor(Math.random() * 100000000) + 1; 
+      let value = await Math.floor(Math.random() * 1000000000) + approvalValue + 1;
+      let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
+      let cooldown = await Math.floor(Math.random() * 1000) + 1;
+
+      await stable.setOwnerApprovalValue(approvalValue, {from: owner});
+      await stable.addAuthorizedAddress(sender, {from: owner});
+
+      try {
+        await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
+      } catch (e) {
+        return true;
+      }
+      throw new Error("Did not throw")
+    }); 
+
     it("should throw if deposit was already minted", async function () {
       let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
       let sender = await accounts[0];
-      let receiver = await accounts[4];
+      let receiver = await accounts[7];
+      let approvalValue = await 10000000000;
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await 0;
 
+      await stable.setOwnerApprovalValue(approvalValue, {from: owner});
       await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
 
       try {
@@ -119,13 +168,16 @@ contract("StableCoin", function(accounts) {
 
     it("should throw if account is in cooldown", async function () {
       let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
       let sender = await accounts[0];
-      let receiver = await accounts[5];
+      let receiver = await accounts[8];
+      let approvalValue = await 10000000000;
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let firstDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let secondDepositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 6000) + 1000;
 
+      await stable.setOwnerApprovalValue(approvalValue, {from: owner});
       await stable.mintToken(receiver, value, firstDepositNumber, cooldown, {from: sender});
       await timeTravel(60);
 
@@ -139,12 +191,15 @@ contract("StableCoin", function(accounts) {
 
     it("should throw if contract is paused", async function () {
       let stable = await StableCoin.deployed();
+      let owner = await accounts[0];
       let sender = await accounts[0];
-      let receiver = await accounts[6];
+      let receiver = await accounts[9];
+      let approvalValue = await 10000000000;
       let value = await Math.floor(Math.random() * 100000000) + 1;
       let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
       let cooldown = await Math.floor(Math.random() * 1000) + 1;
 
+      await stable.setOwnerApprovalValue(approvalValue, {from: owner});
       await stable.pauseContract({from: sender});
 
       try {
