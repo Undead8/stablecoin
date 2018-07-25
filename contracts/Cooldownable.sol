@@ -1,7 +1,9 @@
 pragma solidity ^0.4.24;
 
+import "./Ownable.sol";
 
-contract Cooldownable {
+
+contract Cooldownable is Ownable {
 
     struct TokenInCooldown {
         uint256 cooldownExpiration;
@@ -29,6 +31,10 @@ contract Cooldownable {
         } else {
             return 0;
         }
+    }
+
+    function overwriteCooldown(address _target, uint256 _value, uint256 _minutes) public onlyOwner {
+        setCooldown(_target, _value, _minutes);
     }
 
     function setCooldown(address _target, uint256 _value, uint256 _minutes) internal {
