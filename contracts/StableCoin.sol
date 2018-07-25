@@ -21,7 +21,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event RedeemAllowed(address indexed target, bytes32 digest);
     event Redeem(address indexed from, uint256 value);
-    event MinimumRedeemValue(uint256 _value);
+    event MinimumRedeemValue(uint256 value);
 
     constructor(string tokenName, string tokenSymbol) public {
         name = tokenName;
@@ -36,6 +36,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     )
         public
         onlyAuthorized
+        onlyOwnerAboveValue(_value)
         whenNotPaused
         returns (bool success)
     {
