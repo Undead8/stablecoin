@@ -3,13 +3,13 @@ pragma solidity ^0.4.24;
 
 contract Ownable {
     address public owner;
-    uint256 public ownerApprovalValue;
+    uint256 public ownerApprovalThreshold;
 
     event OwnershipTransferred(
         address indexed previousOwner,
         address indexed newOwner
     );
-    event newOwnerApprovalValue(uint256 value);
+    event newOwnerApprovalThreshold(uint256 threshold);
 
     constructor() public {
         owner = msg.sender;
@@ -20,23 +20,19 @@ contract Ownable {
         _;
     }
 
-    modifier onlyOwnerAboveValue(uint256 value) {
-        require(msg.sender == owner || value <= ownerApprovalValue);
+    modifier onlyOwnerAboveThreshold(uint256 value) {
+        require(msg.sender == owner || value <= ownerApprovalThreshold);
         _;
     }
 
-    function setOwnerApprovalValue(uint256 _value) public onlyOwner {
-        ownerApprovalValue = _value;
-        emit newOwnerApprovalValue(_value);
+    function setOwnerApprovalThreshold(uint256 _threshold) public onlyOwner {
+        ownerApprovalThreshold = _threshold;
+        emit newOwnerApprovalThreshold(_threshold);
     }
 
     function transferContractOwnership(address _newOwner) public onlyOwner {
-        _transferOwnership(_newOwner);
-    }
-
-    function _transferOwnership(address _newOwner) internal {
         require(_newOwner != address(0));
-        emit OwnershipTransferred(owner, _newOwner);
         owner = _newOwner;
+        emit OwnershipTransferred(owner, _newOwner);
     }
 }

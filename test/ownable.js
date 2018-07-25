@@ -12,31 +12,31 @@ contract("Ownable", function(accounts) {
   it("should set approvable value by owner", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
-    let firstApprovalValue = await Math.floor(Math.random() * 100000000) + 1;
-    let secondApprovalValue = await Math.floor(Math.random() * 100000000) + 1;
+    let firstApprovalThreshold = await Math.floor(Math.random() * 100000000) + 1;
+    let secondApprovalThreshold = await Math.floor(Math.random() * 100000000) + 1;
 
-    await stable.setOwnerApprovalValue(firstApprovalValue, {from: sender});
-    let firstApprovalResult = await stable.ownerApprovalValue();
+    await stable.setOwnerApprovalThreshold(firstApprovalThreshold, {from: sender});
+    let firstApprovalResult = await stable.ownerApprovalThreshold();
 
-    await stable.setOwnerApprovalValue(secondApprovalValue, {from: sender});
-    let secondApprovalResult = await stable.ownerApprovalValue();
+    await stable.setOwnerApprovalThreshold(secondApprovalThreshold, {from: sender});
+    let secondApprovalResult = await stable.ownerApprovalThreshold();
 
-    assert.equal(firstApprovalResult, firstApprovalValue, "Not the right value") ||
-    assert.equal(secondApprovalResult, secondApprovalValue, "Not the right value")
+    assert.equal(firstApprovalResult, firstApprovalThreshold, "Not the right value") ||
+    assert.equal(secondApprovalResult, secondApprovalThreshold, "Not the right value")
   });
 
   it("should throw if transfer approval value is not sent by owner", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[5];
     let receiver = await accounts[1];
-    let approvalValue = await Math.floor(Math.random() * 100000000) + 1;
+    let approvalThreshold = await Math.floor(Math.random() * 100000000) + 1;
 
     try {
-      await stable.setOwnerApprovalValue(approvalValue, {from: sender});
+      await stable.setOwnerApprovalThreshold(approvalThreshold, {from: sender});
     } catch (e) {
       return true;
     }
-    throw new Error("ApprovalValue changed")
+    throw new Error("ApprovalThreshold changed")
   });
 
   it("should transfer ownership", async function () {

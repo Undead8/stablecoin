@@ -36,7 +36,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     )
         public
         onlyAuthorized
-        onlyOwnerAboveValue(_value)
+        onlyOwnerAboveThreshold(_value)
         whenNotPaused
         returns (bool success)
     {
