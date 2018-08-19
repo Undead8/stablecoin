@@ -14,11 +14,11 @@ contract Cooldownable is Ownable {
 
     mapping (address => TokenInCooldown) internal cooldownOf;
 
-    event newMinimumCooldown(uint256 minutes);
+    event NewMinimumCooldown(uint256 minimumMinutes);
 
     function setMinimumCooldown(uint256 _minutes) public onlyOwner {
         minimumCooldown = _minutes;
-        emit newMinimumCooldown(_minutes);
+        emit NewMinimumCooldown(_minutes);
     }
 
     function valueInCooldown(address _target) public view returns (uint256 value) {
@@ -46,8 +46,7 @@ contract Cooldownable is Ownable {
         setCooldown(_target, _value, _minutes);
     }
 
-    function setCooldown(address _target, uint256 _value, uint256 _minutes) internal {
-        require(msg.sender == owner || _minutes >= minimumCooldown, "Cooldown is lower than minimum cooldown.");
+    function setCooldown(address _target, uint256 _value, uint256 _minutes) internal {        
         cooldownOf[_target] = TokenInCooldown(now + _minutes * 1 minutes, _value);
     }
 }

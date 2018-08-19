@@ -16,6 +16,31 @@ const timeTravel = function (time) {
 
 contract("Cooldownable", function(accounts) {
 
+  it("should set the minimum cooldown by owner", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[0];
+    let cooldown = await Math.floor(Math.random() * 6000) + 60;
+
+    await stable.setMinimumCooldown(cooldown, {from: sender});
+
+    let minCooldown = await stable.minimumCooldown.call().then(result => result.toNumber());
+
+    assert.equal(minCooldown, cooldown, "The minimum cooldown is not the right one")
+  });
+
+  it("should throw if the minimum cooldown is not set by owner", async function () {
+    let stable = await StableCoin.deployed();
+    let sender = await accounts[9];
+    let cooldown = await Math.floor(Math.random() * 6000) + 60;
+
+    try {
+      await stable.setMinimumCooldown(cooldown, {from: sender});
+    } catch (e) {
+      return true;
+    }
+    throw new Error("It did not throw")
+  });
+
   it("should return the cooldown value when in cooldown", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
@@ -77,13 +102,19 @@ contract("Cooldownable", function(accounts) {
     assert.equal(seconds, 0, "The cooldown seconds left of address is not 0")
   });
 
-  it("should throw if cooldown is set to more than 7200 minutes", async function () {
+  it("should throw if cooldown is under minimumCooldown", async function () {
     let stable = await StableCoin.deployed();
-    let sender = await accounts[0];
-    let receiver = await accounts[5];
+    let owner = await accounts[0];
+    let sender = await accounts[5];
+    let receiver = await accounts[6];
     let value = await Math.floor(Math.random() * 100000000) + 1;
     let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
-    let cooldown = await Math.floor(Math.random() * 10000) + 7201;
+    let minCooldown = await Math.floor(Math.random() * 10000) + 7200;
+    let cooldown = await Math.floor(Math.random() * 7000);
+
+    await stable.addAuthorizedAddress(sender, {from: owner});
+    await stable.setOwnerApprovalThreshold(value + 1, {from: owner});
+    await stable.setMinimumCooldown(minCooldown, {from: owner});
 
     try {
       await stable.mintToken(receiver, value, depositNumber, cooldown, {from: sender});
@@ -91,12 +122,13 @@ contract("Cooldownable", function(accounts) {
       return true;
     }
     throw new Error("It did not throw")
+    
   });
 
   it("should have a cooldown value of zero when not set", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
-    let receiver = await accounts[6];
+    let receiver = await accounts[7];
     let value = await Math.floor(Math.random() * 100000000) + 1;
     let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
     let cooldown = await Math.floor(Math.random() * 10000) + 7201;
@@ -109,7 +141,7 @@ contract("Cooldownable", function(accounts) {
   it("should return zero seconds when not set", async function () {
     let stable = await StableCoin.deployed();
     let sender = await accounts[0];
-    let receiver = await accounts[6];
+    let receiver = await accounts[8];
     let value = await Math.floor(Math.random() * 100000000) + 1;
     let depositNumber = await Math.floor(Math.random() * 1000000) + 10000;
     let cooldown = await Math.floor(Math.random() * 10000) + 7201;

@@ -44,6 +44,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         require(_to != 0x0, "Cannot mint to 0x0 address.");
         require(balanceOf[_to] + _value > balanceOf[_to], "Overflow.");
         require(valueInCooldown(_to) == 0, "Cooldown must be expired.");
+        require(msg.sender == owner || _cooldownInMinutes >= minimumCooldown, "Cooldown is lower than minimum cooldown.");
         setCooldown(_to, _value, _cooldownInMinutes);
         balanceOf[_to] += _value;
         totalSupply += _value;
