@@ -2,33 +2,24 @@
 
 ## Deployment
 
-### Merge contracts before compile
-In terminal, run:
-`cat first-contract.sol second-contract.sol | tr -s '\n' ' ' > mergedcontract.sol`
+`var stablecoinABI = /* copy ABI from remix here */`
 
-### Check if compiler is installed
-In geth console, run:
-`eth.getCompilers()`
+`var stablecoinBytecode = /* copy Bytecode from remix here */`
 
-### Compile
-`var stablecoinSource = /* copy mergedcontract.sol string here */`
-
-`var stablecoinCompiled = web3.eth.compile.solidity(stablecoinSource); console.log(stablecoinCompiled);`
-
-### Deploy
 `var tokenName = /* var of type string here */ ;`
 
 `var tokenSymbol = /* var of type string here */ ;`
 
-`var stablecoinContract = web3.eth.contract(stablecoinCompiled.StableCoin.info.abiDefinition);`
+`var fromAccount = web3.eth.accounts[0]`
 
 ```javascript
+var stablecoinContract = web3.eth.contract(stablecoinABI);
 var stablecoin = stablecoinContract.new(
    tokenName,
    tokenSymbol,
    {
 		from: web3.eth.accounts[0],
-		data: stablecoinCompiled.StableCoin.code,
+		data: "0x" + stablecoinBytecode.object,
 		gas: '4700000'
 	}, function(e, contract){
   	console.log(e, contract);
