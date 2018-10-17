@@ -244,7 +244,8 @@ contract("StableCoin", function(accounts) {
       assert.isFalse(depositStatusAfter, "Deposit status not false")
     });
 
-/*
+/* Need to test the rest of reverseMintage
+
     it("should mint the tokens by authorized", async function () {
       let stable = await StableCoin.deployed();
       let owner = await accounts[0]
@@ -464,6 +465,8 @@ contract("StableCoin", function(accounts) {
       throw new Error("Did not throw")
     });
   });
+
+  // Every function after transfer to do
 
 
 });
