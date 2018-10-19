@@ -1,11 +1,11 @@
 pragma solidity ^0.4.24;
 
-import "../stablecoin/Pausable.sol";
-import "../stablecoin/Authorizable.sol";
+import "./shared/Pausable.sol";
+import "./shared/Authorizable.sol";
 
 
 contract GIC is Pausable, Authorizable {
-    address public currencyContractAddress;
+    address public currencyContract;
 
     mapping (uint256 => uint256) public currentRates;
 

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "./Pausable.sol";
-import "./Authorizable.sol";
-import "./Cooldownable.sol";
+import "./shared/Pausable.sol";
+import "./shared/Authorizable.sol";
+import "./shared/Cooldownable.sol";
 
 
 contract StableCoin is Pausable, Authorizable, Cooldownable {
