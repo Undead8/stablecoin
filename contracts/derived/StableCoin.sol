@@ -1,14 +1,14 @@
 pragma solidity ^0.4.24;
 
-import "./shared/Pausable.sol";
-import "./shared/Authorizable.sol";
-import "./shared/Cooldownable.sol";
+import "./Pausable.sol";
+import "./Authorizable.sol";
+import "./Cooldownable.sol";
 
 
 contract StableCoin is Pausable, Authorizable, Cooldownable {
     string public name;
     string public symbol;
-    uint8 public decimals = 2; // make constant^
+    uint8 public decimals = 2; // make constant?
     uint256 public totalSupply;
     uint256 public minimumRedeemValue;
 
@@ -23,9 +23,9 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     event Redeem(address indexed from, uint256 value);
     event MinimumRedeemValue(uint256 value);
 
-    constructor(string tokenName, string tokenSymbol) public {
-        name = tokenName;
-        symbol = tokenSymbol;
+    constructor(string _tokenName, string _tokenSymbol) public {
+        name = _tokenName;
+        symbol = _tokenSymbol;
     }
 
     function mintToken(

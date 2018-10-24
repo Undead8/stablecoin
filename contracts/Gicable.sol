@@ -1,15 +1,15 @@
 pragma solidity ^0.4.24;
 
-import "./Ownable.sol";
+import "./derived/StableCoin.sol";
 
 
 contract GicContract {
 
-    function issueGic(address _purchaser, uint256 _amount, uint256 _term) public returns (bool success) {}
+    function issueGic(address, uint256, uint256) public pure returns (bool) {}
 }
 
 
-contract GICable is Ownable {
+contract Gicable is StableCoin {
 
     mapping (address => bool) internal gicContractAddresses;
 
@@ -34,8 +34,8 @@ contract GICable is Ownable {
     }
 
     function payForRedemption(address _redeemer, uint256 _faceValue, uint256 _interestsValue) public returns (bool success) {
-        require(balanceOf[msg.sender] >= _value, "Insufficient balance.");
-        require(balanceOf[_redeemer] + _faceValue + _interestsValue > balanceOf[_to], "Overflow.");
+        require(balanceOf[msg.sender] >= _faceValue, "Insufficient balance.");
+        require(balanceOf[_redeemer] + _faceValue + _interestsValue > balanceOf[_redeemer], "Overflow.");
         // Uncomment the following to require approved addresses only. 
         /* 
         require(
