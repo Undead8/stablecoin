@@ -1,5 +1,5 @@
-var StableCoin = artifacts.require("./StableCoin.sol");
+var StableCoin = artifacts.require("StableCoin");
 
 module.exports = function(deployer) {
-  deployer.deploy(StableCoin, "Testtoken", "tkn");
+  deployer.deploy(StableCoin, "CAD Stable", "CADS");
 };
