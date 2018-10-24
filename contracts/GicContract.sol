@@ -9,9 +9,9 @@ contract StableCoin {
     string public name;
     string public symbol;
 
-    function payForGic(address, uint256, uint256) public pure returns (bool) {}
+    function payForGic(address, uint256, uint256) public returns (bool) {}
 
-    function payForRedemption(address, uint256, uint256) public pure returns (bool) {}
+    function payForRedemption(address, uint256, uint256) public returns (bool) {}
 }
 
 
@@ -28,14 +28,15 @@ contract GicContract is Pausable, Authorizable {
     string public name;
     string public symbol;
     uint8 public decimals = 2;
+    
+    uint256[8] public availableTermsInDays;
+    uint256[8] public ratesInBasisPoints;
 
     mapping (address => uint256[]) public gicIdOf;
-
+    
     uint256 internal currentGicId = 1;
-    uint256[7] internal availableTerms;
     mapping (uint256 => address) internal holderOfGic;
     mapping (uint256 => GIC) internal gicStruct;
-    mapping (uint256 => uint256) internal rateForTerm;
 
     constructor(string _tokenName, string _tokenSymbol, address _currencyContractAddress) public {
         name = _tokenName;
@@ -48,20 +49,22 @@ contract GicContract is Pausable, Authorizable {
         return true;
     }
 
-    function setTermsAndRates(uint256[7] _terms, uint256[7] _rates) public onlyAuthorized returns (bool success) {
-        // First, clear rateForTerm mapping by using the current terms in availableTerms.
-        // Then, iterate between the first and seconds array to craete the mapping (or dont do a mapping at all?)
-    }
-
-    function requestGic(uint256 _amount, uint256 _term) public whenNotPaused returns (bool success) {
-        require(rateForTerm[_term] > 0, "This term is not available.");
-        currencyContract.payForGic(msg.sender, _amount, _term);
+    function setTermsAndRates(uint256[8] _terms, uint256[8] _rates) public onlyAuthorized returns (bool success) {
+        availableTermsInDays = _terms;
+        ratesInBasisPoints = _rates;
         return true;
     }
 
-    function issueGic(address _purchaser, uint256 _amount, uint256 _term) public whenNotPaused returns (bool success) {
+    function requestGic(uint256 _amount, uint256 _termIndex) public whenNotPaused returns (bool success) {
+        currencyContract.payForGic(msg.sender, _amount, _termIndex);
+        return true;
+    }
+
+    function issueGic(address _purchaser, uint256 _amount, uint256 _termIndex) public whenNotPaused returns (bool success) {
         require(msg.sender == address(currencyContract), "Must be called by currencyContract.");
-        gicStruct[currentGicId] = GIC(_amount, now, now + _term, rateForTerm[_term]); // now is not safe, must fix that issue!
+
+
+        gicStruct[currentGicId] = GIC(_amount, now, now + availableTermsInDays[_termIndex] * 1 days, ratesInBasisPoints[_termIndex]); // now is not safe, must fix that issue!
         holderOfGic[currentGicId] = _purchaser;
         gicIdOf[_purchaser].push(currentGicId);
         currentGicId += 1;

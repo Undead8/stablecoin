@@ -18,7 +18,7 @@ contract Gicable is StableCoin {
         return true;
     }
 
-    function payForGic(address _purchaser, uint256 _amount, uint256 _term) public returns (bool success) {
+    function payForGic(address _purchaser, uint256 _amount, uint256 _termIndex) public returns (bool success) {
         require(gicContractAddresses[msg.sender] == true, "Must be called by gicContract.");
         // Uncomment the following to require approved addresses only. 
         /* 
@@ -29,7 +29,7 @@ contract Gicable is StableCoin {
         */
         _transfer(_purchaser, msg.sender, _amount);
         GicContract gicContract = GicContract(msg.sender);
-        gicContract.issueGic(_purchaser, _amount, _term);
+        gicContract.issueGic(_purchaser, _amount, _termIndex);
         return true;      
     }
 
