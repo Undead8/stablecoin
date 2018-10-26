@@ -5,7 +5,7 @@ import "./Authorizable.sol";
 import "./Cooldownable.sol";
 
 
-contract StableCoin is Pausable, Authorizable, Cooldownable {
+contract StableCoin is Pausable, Cooldownable, Authorizable {
     string public name;
     string public symbol;
     uint8 public decimals = 2; // make constant?

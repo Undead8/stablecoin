@@ -4,10 +4,7 @@ import "./derived/Pausable.sol";
 import "./derived/Authorizable.sol";
 
 
-contract StableCoin {
-
-    string public name;
-    string public symbol;
+contract GicableABI {
 
     function payForGic(address, uint256, uint256) public returns (bool) {}
 
@@ -16,7 +13,7 @@ contract StableCoin {
 
 
 contract GicContract is Pausable, Authorizable {
-    StableCoin public currencyContract;
+    GicableABI public currencyContract;
 
     struct GIC {
         uint256 faceValue;
@@ -41,11 +38,11 @@ contract GicContract is Pausable, Authorizable {
     constructor(string _tokenName, string _tokenSymbol, address _currencyContractAddress) public {
         name = _tokenName;
         symbol = _tokenSymbol;
-        currencyContract = StableCoin(_currencyContractAddress);
+        currencyContract = GicableABI(_currencyContractAddress);
     }
 
     function setCurrencyContract(address _currencyContractAddress) public onlyOwner returns (bool success) {
-        currencyContract = StableCoin(_currencyContractAddress);
+        currencyContract = GicableABI(_currencyContractAddress);
         return true;
     }
 
@@ -61,8 +58,7 @@ contract GicContract is Pausable, Authorizable {
     }
 
     function issueGic(address _purchaser, uint256 _amount, uint256 _termIndex) public whenNotPaused returns (bool success) {
-        require(msg.sender == address(currencyContract), "Must be called by currencyContract.");
-
+        require(msg.sender == address(currencyContract) || msg.sender == owner, "Must be called by currencyContract or owner.");
 
         gicStruct[currentGicId] = GIC(_amount, now, now + availableTermsInDays[_termIndex] * 1 days, ratesInBasisPoints[_termIndex]); // now is not safe, must fix that issue!
         holderOfGic[currentGicId] = _purchaser;
@@ -82,4 +78,6 @@ contract GicContract is Pausable, Authorizable {
         currencyContract.payForRedemption(msg.sender, redeemedGic.faceValue, interestsValue);
         return true;
     }
+
+    function destroyContract() public payable onlyOwner whenPaused { selfdestruct(owner); }
 }

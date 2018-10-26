@@ -3,15 +3,17 @@ pragma solidity ^0.4.24;
 import "./derived/StableCoin.sol";
 
 
-contract GicContract {
+contract GicContractABI {
 
-    function issueGic(address, uint256, uint256) public pure returns (bool) {}
+    function issueGic(address, uint256, uint256) public returns (bool) {}
 }
 
 
 contract Gicable is StableCoin {
 
     mapping (address => bool) internal gicContractAddresses;
+
+    constructor(string _tokenName, string _tokenSymbol) StableCoin(_tokenName, _tokenSymbol) public {}
 
     function approveGicContractAddress(address _gicContractAddress, bool _approved) public onlyOwner returns (bool success) {
         gicContractAddresses[_gicContractAddress] = _approved;
@@ -28,7 +30,7 @@ contract Gicable is StableCoin {
         ); 
         */
         _transfer(_purchaser, msg.sender, _amount);
-        GicContract gicContract = GicContract(msg.sender);
+        GicContractABI gicContract = GicContractABI(msg.sender);
         gicContract.issueGic(_purchaser, _amount, _termIndex);
         return true;      
     }
