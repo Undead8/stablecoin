@@ -11,6 +11,7 @@ contract GicContractABI {
 
 contract Gicable is StableCoin {
 
+    // Many GIC contracts may be linked to a single Gicable contract.
     mapping (address => bool) internal gicContractAddresses;
 
     constructor(string _tokenName, string _tokenSymbol) StableCoin(_tokenName, _tokenSymbol) public {}
@@ -48,6 +49,7 @@ contract Gicable is StableCoin {
         balanceOf[msg.sender] -= _faceValue;
         uint256 totalValue = _faceValue + _interestsValue;
         balanceOf[_redeemer] += totalValue;
+        totalSupply += _interestsValue;
         return true;
     }
 }

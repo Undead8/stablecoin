@@ -35,6 +35,8 @@ contract GicContract is Pausable, Authorizable {
     mapping (uint256 => address) internal holderOfGic;
     mapping (uint256 => GIC) internal gicStruct;
 
+    // I should add EVENTS here
+
     constructor(string _tokenName, string _tokenSymbol, address _currencyContractAddress) public {
         name = _tokenName;
         symbol = _tokenSymbol;
@@ -52,13 +54,14 @@ contract GicContract is Pausable, Authorizable {
         return true;
     }
 
+    // Requesting a GIC from the currencyContract directly would also work, but it would make the GIC issuance process less upgradable.
     function requestGic(uint256 _amount, uint256 _termIndex) public whenNotPaused returns (bool success) {
         currencyContract.payForGic(msg.sender, _amount, _termIndex);
         return true;
     }
 
     function issueGic(address _purchaser, uint256 _amount, uint256 _termIndex) public whenNotPaused returns (bool success) {
-        require(msg.sender == address(currencyContract) || msg.sender == owner, "Must be called by currencyContract or owner.");
+        require(address(currencyContract) == msg.sender || owner == msg.sender, "Must be called by currencyContract or owner.");
 
         gicStruct[currentGicId] = GIC(_amount, now, now + availableTermsInDays[_termIndex] * 1 days, ratesInBasisPoints[_termIndex]); // now is not safe, must fix that issue!
         holderOfGic[currentGicId] = _purchaser;
@@ -70,7 +73,7 @@ contract GicContract is Pausable, Authorizable {
     function redeemGic(uint256 _gicId) public whenNotPaused returns (bool success) {
         GIC memory redeemedGic = gicStruct[_gicId];
 
-        require(msg.sender == holderOfGic[_gicId], "Msg.sender does not own this GIC.");
+        require(holderOfGic[_gicId] == msg.sender, "Msg.sender does not own this GIC.");
         require(redeemedGic.timeOfMaturity < now, "GIC has not reached maturity."); // now is not safe, must fix that issue!
         delete holderOfGic[_gicId];
         delete gicStruct[_gicId];
