@@ -5,10 +5,10 @@ import "./Authorizable.sol";
 import "./Cooldownable.sol";
 
 
-contract StableCoin is Pausable, Authorizable, Cooldownable {
+contract StableCoin is Pausable, Cooldownable, Authorizable {
     string public name;
     string public symbol;
-    uint8 public decimals = 2; // make constant^
+    uint8 public decimals = 2; // make constant?
     uint256 public totalSupply;
     uint256 public minimumRedeemValue;
 
@@ -23,9 +23,9 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
     event Redeem(address indexed from, uint256 value);
     event MinimumRedeemValue(uint256 value);
 
-    constructor(string tokenName, string tokenSymbol) public {
-        name = tokenName;
-        symbol = tokenSymbol;
+    constructor(string _tokenName, string _tokenSymbol) public {
+        name = _tokenName;
+        symbol = _tokenSymbol;
     }
 
     function mintToken(
@@ -73,7 +73,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         return true;
     }
 
-    function transfer(address _to, uint256 _value) public whenNotPaused returns (bool success) {
+    function transfer(address _to, uint256 _value) public returns (bool success) {
         _transfer(msg.sender, _to, _value);
         return true;
     }
@@ -84,7 +84,6 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
         uint256 _value
     )
         public
-        whenNotPaused
         returns (bool success)
     {
         require(_value <= allowance[_from][msg.sender], "Insufficient allowance.");
@@ -142,7 +141,7 @@ contract StableCoin is Pausable, Authorizable, Cooldownable {
 
     function destroyContract() public payable onlyOwner whenPaused { selfdestruct(owner); }
 
-    function _transfer(address _from, address _to, uint _value) internal {
+    function _transfer(address _from, address _to, uint _value) internal whenNotPaused {
         require(_to != 0x0, "Cannot transfer to 0x0 address.");
         require(_to != address(this), "Cannot transfer to issuer contract.");
         require(balanceOf[_from] >= _value, "Insufficient balance.");
